@@ -1,5 +1,5 @@
 <script>
-  import { store, COLORS } from '../lib/store.js'
+  import { store, COLORS } from '$lib/store.js'
 
   export let open = false
   export let onClose = () => {}

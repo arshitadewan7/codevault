@@ -1,5 +1,5 @@
 <script>
-  import { store, projectEmoji } from '../lib/store.js'
+  import { store, projectEmoji } from '$lib/store.js'
 
   export let projects = []
   export let activeProjectId = null

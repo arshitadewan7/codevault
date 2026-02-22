@@ -1,5 +1,5 @@
 <script>
-  import { store, timeLabel } from '../lib/store.js'
+  import { store, timeLabel } from '$lib/store.js'
 
   export let snippet = null
   export let previewVersionIndex = null

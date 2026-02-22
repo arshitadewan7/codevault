@@ -1,5 +1,5 @@
 <script>
-  import { store } from './lib/store.js'
+  import { store } from '$lib/store.js'
   import Sidebar from './Sidebar.svelte'
   import SnippetEditor from './SnippetEditor.svelte'
   import VersionPanel from './VersionPanel.svelte'

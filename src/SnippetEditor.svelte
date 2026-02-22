@@ -1,5 +1,5 @@
 <script>
-  import { store, LANGUAGES } from '../lib/store.js'
+  import { store, LANGUAGES } from '$lib/store.js'
 
   export let snippet = null
   export let project = null
