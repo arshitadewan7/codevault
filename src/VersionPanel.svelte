@@ -28,6 +28,20 @@
     if (!confirm(`Restore v${(snippet.versions.length - previewVersionIndex)}? Current code will be overwritten.`)) return
     store.restoreVersion(snippet.id, previewVersionIndex)
   }
+
+  function deleteVersion(e, version) {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!snippet || !version) return
+    if (!confirm('Delete this version?')) return
+    store.deleteVersion(snippet.id, version.id)
+  }
+
+  function clearAllVersions() {
+    if (!snippet) return
+    if (!confirm('Delete all saved versions?')) return
+    store.clearVersions(snippet.id)
+  }
 </script>
 
 {#if snippet}
@@ -52,17 +66,27 @@
     </button>
 
     {#each (snippet.versions || []) as version, i (version.id)}
-      <button
-        class="version-entry"
-        class:previewing={previewVersionIndex === i}
-        on:click={() => handlePreview(i)}
-      >
-        <div class="version-num" class:preview-num={previewVersionIndex === i}>
-          v{snippet.versions.length - i}
-        </div>
-        <div class="version-msg">{version.msg}</div>
-        <div class="version-time">{timeLabel(version.timestamp)}</div>
-      </button>
+      <div class="version-row">
+        <button
+          class="version-entry"
+          class:previewing={previewVersionIndex === i}
+          on:click={() => handlePreview(i)}
+        >
+          <div class="version-num" class:preview-num={previewVersionIndex === i}>
+            v{snippet.versions.length - i}
+          </div>
+          <div class="version-msg">{version.msg}</div>
+          <div class="version-time">{timeLabel(version.timestamp)}</div>
+        </button>
+
+        <button
+          class="version-action danger"
+          title="Delete version"
+          on:click={(e) => deleteVersion(e, version)}
+        >
+          ×
+        </button>
+      </div>
     {/each}
   </div>
 
@@ -77,6 +101,11 @@
     <button class="save-btn" on:click={handleSave}>
       {saveFlash ? '✓ Saved!' : '💾 Save Version'}
     </button>
+    {#if (snippet.versions || []).length}
+      <button class="btn-clear" on:click={clearAllVersions}>
+        Clear saved versions
+      </button>
+    {/if}
     {#if previewVersionIndex !== null}
       <button class="restore-btn" on:click={handleRestore}>
         ↩ Restore this version
@@ -124,6 +153,12 @@
   .version-list::-webkit-scrollbar { width: 3px; }
   .version-list::-webkit-scrollbar-thumb { background: var(--border); }
 
+  .version-row {
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+  }
+
   .version-entry {
     padding: 10px 12px;
     border-radius: 8px;
@@ -139,6 +174,21 @@
   .version-entry:hover { background: var(--surface2); border-color: var(--border); }
   .version-entry.current { border-color: rgba(91,138,255,0.4); background: rgba(91,138,255,0.07); }
   .version-entry.previewing { border-color: rgba(255,107,107,0.4); background: rgba(255,107,107,0.07); }
+
+  .version-action {
+    width: 28px;
+    border-radius: 8px;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 1;
+  }
+  .version-action:hover { background: var(--surface2); border-color: var(--border); color: var(--text); }
+  .version-action.danger:hover { color: var(--accent2); border-color: rgba(255,107,107,0.3); background: rgba(255,107,107,0.10); }
 
   .version-num {
     font-size: 11px;
@@ -228,4 +278,19 @@
     transition: all 0.15s;
   }
   .restore-btn:hover { background: rgba(255,107,107,0.25); }
+
+  .btn-clear {
+    width: 100%;
+    padding: 8px;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-sans);
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 6px;
+    border: 1px dashed var(--border);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-clear:hover { border-color: rgba(255,107,107,0.35); color: var(--accent2); background: rgba(255,107,107,0.06); }
 </style>

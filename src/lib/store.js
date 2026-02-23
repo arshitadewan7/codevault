@@ -200,6 +200,34 @@ function createStore() {
       })
     },
 
+    deleteVersion(snippetId, versionId) {
+      update(s => {
+        for (const p of s.projects) {
+          const sn = p.snippets.find(sn => sn.id === snippetId)
+          if (sn) {
+            sn.versions = (sn.versions || []).filter(v => v.id !== versionId)
+            break
+          }
+        }
+        s.previewVersionIndex = null
+        return persist(s)
+      })
+    },
+
+    clearVersions(snippetId) {
+      update(s => {
+        for (const p of s.projects) {
+          const sn = p.snippets.find(sn => sn.id === snippetId)
+          if (sn) {
+            sn.versions = []
+            break
+          }
+        }
+        s.previewVersionIndex = null
+        return persist(s)
+      })
+    },
+
     setPreviewVersion(index) {
       update(s => { s.previewVersionIndex = index; return s })
     },
