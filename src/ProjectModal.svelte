@@ -47,8 +47,8 @@
       </div>
 
       <div class="form-group">
-        <label>Color</label>
-        <div class="swatches">
+        <label id="proj-color-label">Color</label>
+        <div class="swatches" role="group" aria-labelledby="proj-color-label">
           {#each COLORS as color}
             <button
               class="swatch"
@@ -110,6 +110,7 @@
     font-weight: 800;
     margin-bottom: 20px;
     color: var(--text);
+    font-family: var(--font-display);
   }
 
   .form-group { margin-bottom: 16px; }
@@ -131,7 +132,7 @@
     border-radius: 8px;
     padding: 10px 14px;
     color: var(--text);
-    font-family: 'Syne', sans-serif;
+    font-family: var(--font-sans);
     font-size: 14px;
     outline: none;
     transition: border 0.15s;
@@ -166,7 +167,7 @@
     border-radius: 8px;
     border: none;
     cursor: pointer;
-    font-family: 'Syne', sans-serif;
+    font-family: var(--font-sans);
     font-weight: 600;
     transition: all 0.15s;
   }
@@ -180,7 +181,7 @@
     border-radius: 8px;
     border: 1px solid var(--border);
     cursor: pointer;
-    font-family: 'Syne', sans-serif;
+    font-family: var(--font-sans);
     font-weight: 600;
     transition: all 0.15s;
   }

@@ -42,6 +42,11 @@
     store.updateSnippetField(snippet.id, 'notes', e.target.value)
   }
 
+  function removeNotes() {
+    if (!snippet || isReadOnly) return
+    store.updateSnippetField(snippet.id, 'notes', '')
+  }
+
   function onLangChange(e) {
     if (!snippet || isReadOnly) return
     store.updateSnippetField(snippet.id, 'lang', e.target.value)
@@ -109,6 +114,9 @@
     <button class="copy-btn" class:copied={copyFlash} on:click={copyCode}>
       {copyFlash ? 'copied!' : 'copy'}
     </button>
+    <button class="btn-sm" disabled={isReadOnly} on:click={removeNotes}>
+      remove notes
+    </button>
     <button class="btn-danger" on:click={deleteSnippet}>delete</button>
   </div>
 
@@ -170,7 +178,7 @@
     border-bottom: 1px solid rgba(255,107,107,0.2);
     font-size: 12px;
     color: var(--accent2);
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
     display: flex;
     align-items: center;
     gap: 12px;
@@ -188,7 +196,7 @@
   }
 
   .snippet-title-input {
-    font-family: 'Syne', sans-serif;
+    font-family: var(--font-display);
     font-size: 20px;
     font-weight: 800;
     background: transparent;
@@ -202,7 +210,7 @@
   .snippet-title-input:read-only { opacity: 0.7; }
 
   .lang-select {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 12px;
     background: var(--surface2);
     border: 1px solid var(--border);
@@ -216,7 +224,7 @@
   .lang-select:disabled { opacity: 0.6; cursor: default; }
 
   .copy-btn {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 11px;
     background: var(--surface2);
     color: var(--text-dim);
@@ -237,7 +245,7 @@
     border: 1px solid rgba(255,107,107,0.3);
     border-radius: 6px;
     cursor: pointer;
-    font-family: 'Syne', sans-serif;
+    font-family: var(--font-sans);
     font-weight: 600;
     transition: all 0.15s;
   }
@@ -261,7 +269,7 @@
   .tabs { display: flex; gap: 4px; }
 
   .tab-btn {
-    font-family: 'Syne', sans-serif;
+    font-family: var(--font-sans);
     font-size: 12px;
     font-weight: 600;
     padding: 5px 14px;
@@ -287,7 +295,7 @@
     width: 100%;
     background: var(--code-bg);
     color: #abb2bf;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 13.5px;
     line-height: 1.7;
     padding: 24px;
@@ -307,7 +315,7 @@
     overflow: auto;
   }
   .code-preview pre {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 13.5px;
     line-height: 1.7;
     color: #abb2bf;
@@ -317,7 +325,7 @@
   }
 
   .desc-editor {
-    font-family: 'Syne', sans-serif;
+    font-family: var(--font-sans);
     font-size: 14px;
     line-height: 1.7;
     color: var(--text-dim);
@@ -332,7 +340,7 @@
   .desc-editor::placeholder { color: var(--text-muted); }
 
   .btn-sm {
-    font-family: 'Syne', sans-serif;
+    font-family: var(--font-sans);
     font-size: 11px;
     background: var(--surface2);
     color: var(--text-dim);

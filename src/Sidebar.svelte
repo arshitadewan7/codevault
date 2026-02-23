@@ -108,7 +108,7 @@
     border-radius: 8px;
     padding: 8px 12px;
     color: var(--text);
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 12px;
     outline: none;
     transition: border 0.15s;
@@ -142,7 +142,7 @@
     color: var(--text-dim);
     transition: background 0.1s;
     text-align: left;
-    font-family: 'Syne', sans-serif;
+    font-family: var(--font-sans);
   }
   .project-header:hover { background: var(--surface2); }
   .project-header.active { background: rgba(91,138,255,0.12); }
@@ -203,7 +203,7 @@
     background: transparent;
     border: none;
     text-align: left;
-    font-family: 'Syne', sans-serif;
+    font-family: var(--font-sans);
     width: 100%;
   }
   .snippet-item:hover { background: var(--surface2); color: var(--text-dim); }
@@ -221,7 +221,7 @@
     border: 1px dashed var(--border);
     border-radius: 8px;
     cursor: pointer;
-    font-family: 'Syne', sans-serif;
+    font-family: var(--font-sans);
     transition: all 0.15s;
     margin-top: 8px;
   }

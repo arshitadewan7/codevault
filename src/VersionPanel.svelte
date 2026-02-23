@@ -133,7 +133,7 @@
     background: transparent;
     text-align: left;
     width: 100%;
-    font-family: 'Syne', sans-serif;
+    font-family: var(--font-sans);
     color: var(--text);
   }
   .version-entry:hover { background: var(--surface2); border-color: var(--border); }
@@ -144,7 +144,7 @@
     font-size: 11px;
     font-weight: 700;
     color: var(--accent);
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
     display: flex;
     align-items: center;
     gap: 6px;
@@ -172,7 +172,7 @@
   .version-time {
     font-size: 10px;
     color: var(--text-muted);
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
   }
 
   .version-footer {
@@ -184,7 +184,7 @@
   }
 
   .commit-input {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 11px;
     background: var(--surface2);
     border: 1px solid var(--border);
@@ -203,7 +203,7 @@
     padding: 8px;
     background: var(--accent);
     color: white;
-    font-family: 'Syne', sans-serif;
+    font-family: var(--font-sans);
     font-size: 12px;
     font-weight: 700;
     border-radius: 6px;
@@ -219,7 +219,7 @@
     padding: 8px;
     background: rgba(255,107,107,0.15);
     color: var(--accent2);
-    font-family: 'Syne', sans-serif;
+    font-family: var(--font-sans);
     font-size: 12px;
     font-weight: 700;
     border-radius: 6px;

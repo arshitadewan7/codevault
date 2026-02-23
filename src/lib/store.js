@@ -4,6 +4,14 @@ function uid() {
   return Math.random().toString(36).slice(2, 9)
 }
 
+function loadSession() {
+  try {
+    return JSON.parse(localStorage.getItem('cv_session') || 'null')
+  } catch {
+    return null
+  }
+}
+
 function loadProjects() {
   try {
     return JSON.parse(localStorage.getItem('cv_projects') || '[]')
@@ -14,6 +22,7 @@ function loadProjects() {
 
 function createStore() {
   const { subscribe, set, update } = writable({
+    user: loadSession(),
     projects: loadProjects(),
     activeProjectId: null,
     activeSnippetId: null,
@@ -25,8 +34,32 @@ function createStore() {
     return state
   }
 
+  function persistSession(user) {
+    if (user) localStorage.setItem('cv_session', JSON.stringify(user))
+    else localStorage.removeItem('cv_session')
+  }
+
   return {
     subscribe,
+
+    login(email) {
+      update(s => {
+        s.user = { email: (email || '').trim(), loggedInAt: Date.now() }
+        persistSession(s.user)
+        return s
+      })
+    },
+
+    logout() {
+      update(s => {
+        s.user = null
+        s.activeProjectId = null
+        s.activeSnippetId = null
+        s.previewVersionIndex = null
+        persistSession(null)
+        return s
+      })
+    },
 
     createProject({ name, color, desc }) {
       const project = {
