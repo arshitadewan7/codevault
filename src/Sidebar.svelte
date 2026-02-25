@@ -272,9 +272,10 @@
   .snippet-item.new-snippet:hover { opacity: 1; }
 
   .new-project-btn {
-    width: 100%;
-    text-align: left;
-    padding: 8px 10px;
+    width: fit-content;
+    align-self: center;
+    text-align: center;
+    padding: 8px 14px;
     font-size: 12px;
     color: var(--text-muted);
     background: transparent;
