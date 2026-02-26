@@ -1,6 +1,29 @@
 <script>
   import { store, LANGUAGES } from '$lib/store.js'
   import { encodeSharePayload, buildShareUrl } from '$lib/share.js'
+  import Prism from 'prismjs'
+
+  import 'prismjs/components/prism-clike'
+  import 'prismjs/components/prism-javascript'
+  import 'prismjs/components/prism-typescript'
+  import 'prismjs/components/prism-python'
+  import 'prismjs/components/prism-java'
+  import 'prismjs/components/prism-c'
+  import 'prismjs/components/prism-cpp'
+  import 'prismjs/components/prism-csharp'
+  import 'prismjs/components/prism-go'
+  import 'prismjs/components/prism-rust'
+  import 'prismjs/components/prism-php'
+  import 'prismjs/components/prism-ruby'
+  import 'prismjs/components/prism-swift'
+  import 'prismjs/components/prism-kotlin'
+  import 'prismjs/components/prism-markup'
+  import 'prismjs/components/prism-css'
+  import 'prismjs/components/prism-sql'
+  import 'prismjs/components/prism-bash'
+  import 'prismjs/components/prism-json'
+  import 'prismjs/components/prism-yaml'
+  import 'prismjs/components/prism-markdown'
 
   export let snippet = null
   export let project = null
@@ -28,6 +51,34 @@
     : (snippet?.lang ?? 'javascript')
 
   $: isReadOnly = previewVersionIndex !== null
+
+  function escapeHtml(str) {
+    return (str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;')
+  }
+
+  function toPrismLang(lang) {
+    if (!lang) return 'plaintext'
+    if (lang === 'html') return 'markup'
+    return lang
+  }
+
+  $: prismLang = toPrismLang(displayLang)
+
+  $: highlightedPreviewHtml = (() => {
+    const code = displayCode || ''
+    const grammar = Prism.languages?.[prismLang]
+    if (!grammar) return escapeHtml(code)
+    try {
+      return Prism.highlight(code, grammar, prismLang)
+    } catch {
+      return escapeHtml(code)
+    }
+  })()
 
   function onTitleInput(e) {
     if (!snippet || isReadOnly) return
@@ -167,7 +218,7 @@
         />
       {:else if activeTab === 'preview'}
         <div class="code-preview">
-          <pre>{displayCode}</pre>
+          <pre class="language-{prismLang}"><code class="language-{prismLang}">{@html highlightedPreviewHtml}</code></pre>
         </div>
       {:else}
         <textarea
