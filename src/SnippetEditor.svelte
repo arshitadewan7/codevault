@@ -1,5 +1,6 @@
 <script>
   import { store, LANGUAGES } from '$lib/store.js'
+  import { encodeSharePayload, buildShareUrl } from '$lib/share.js'
 
   export let snippet = null
   export let project = null
@@ -7,6 +8,7 @@
 
   let activeTab = 'code'
   let copyFlash = false
+  let shareFlash = false
 
   // The values shown — either live snippet or a version preview
   $: displayCode = previewVersionIndex !== null
@@ -74,6 +76,20 @@
     setTimeout(() => copyFlash = false, 1500)
   }
 
+  async function shareSnippet() {
+    if (!snippet) return
+    const payloadStr = encodeSharePayload({
+      title: displayTitle,
+      lang: displayLang,
+      code: displayCode,
+      notes: displayNotes,
+    })
+    const url = buildShareUrl(payloadStr)
+    await navigator.clipboard.writeText(url)
+    shareFlash = true
+    setTimeout(() => shareFlash = false, 1500)
+  }
+
   function deleteSnippet() {
     if (!snippet || !project) return
     if (!confirm('Delete this snippet?')) return
@@ -113,6 +129,9 @@
     </select>
     <button class="copy-btn" class:copied={copyFlash} on:click={copyCode}>
       {copyFlash ? 'copied!' : 'copy'}
+    </button>
+    <button class="copy-btn" class:copied={shareFlash} on:click={shareSnippet}>
+      {shareFlash ? 'copied!' : 'share'}
     </button>
     <button class="btn-sm" disabled={isReadOnly} on:click={removeNotes}>
       remove notes

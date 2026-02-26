@@ -1,12 +1,32 @@
 <script>
   import { store } from '$lib/store.js'
   import Login from './Login.svelte'
+  import Share from './Share.svelte'
   import Sidebar from './Sidebar.svelte'
   import SnippetEditor from './SnippetEditor.svelte'
   import VersionPanel from './VersionPanel.svelte'
   import ProjectModal from './ProjectModal.svelte'
 
   let showProjectModal = false
+
+  let route = { name: 'app', payloadStr: '' }
+
+  function parseHash() {
+    const h = (window.location.hash || '').replace(/^#\/?/, '')
+    const parts = h.split('/')
+    if (parts[0] === 'share' && parts[1]) return { name: 'share', payloadStr: parts.slice(1).join('/') }
+    return { name: 'app', payloadStr: '' }
+  }
+
+  function syncRoute() {
+    route = parseHash()
+  }
+
+  syncRoute()
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('hashchange', syncRoute)
+  }
 
   $: state = $store
   $: projects = state.projects
@@ -20,68 +40,72 @@
 </script>
 
 <div class="app">
-  {#if !user}
-    <Login onLogin={(email) => store.login(email)} />
+  {#if route.name === 'share'}
+    <Share payloadStr={route.payloadStr} />
   {:else}
-    <header>
-      <div class="logo">
-        <div class="logo-dot" />
-        Code<span>Vault</span>
-      </div>
-      <div class="header-actions">
-        {#if activeProjectId}
-          <button class="btn-ghost" on:click={() => store.createSnippet(activeProjectId)}>
-            + New Snippet
+    {#if !user}
+      <Login onLogin={(email) => store.login(email)} />
+    {:else}
+      <header>
+        <div class="logo">
+          <div class="logo-dot" />
+          Code<span>Vault</span>
+        </div>
+        <div class="header-actions">
+          {#if activeProjectId}
+            <button class="btn-ghost" on:click={() => store.createSnippet(activeProjectId)}>
+              + New Snippet
+            </button>
+          {/if}
+          <button class="btn-ghost" on:click={() => store.logout()}>
+            Logout
           </button>
-        {/if}
-        <button class="btn-ghost" on:click={() => store.logout()}>
-          Logout
-        </button>
-        <button class="btn-primary" on:click={() => showProjectModal = true}>
-          + New Project
-        </button>
-      </div>
-    </header>
+          <button class="btn-primary" on:click={() => showProjectModal = true}>
+            + New Project
+          </button>
+        </div>
+      </header>
 
-    <div class="app-body">
-      <Sidebar
-        {projects}
-        {activeProjectId}
-        {activeSnippetId}
-        onNewProject={() => showProjectModal = true}
-      />
+      <div class="app-body">
+        <Sidebar
+          {projects}
+          {activeProjectId}
+          {activeSnippetId}
+          onNewProject={() => showProjectModal = true}
+        />
 
-      <main class="main">
+        <main class="main">
+          {#if activeSnippet}
+            <SnippetEditor
+              snippet={activeSnippet}
+              project={activeProject}
+              {previewVersionIndex}
+            />
+          {:else}
+            <div class="empty-state">
+              <div class="empty-glyph">⌨️</div>
+              <h2>CodeVault</h2>
+              <p>// select or create a project to start</p>
+              <button class="btn-primary" style="margin-top:8px" on:click={() => showProjectModal = true}>
+                Create your first project →
+              </button>
+            </div>
+          {/if}
+        </main>
+
         {#if activeSnippet}
-          <SnippetEditor
+          <VersionPanel
             snippet={activeSnippet}
-            project={activeProject}
             {previewVersionIndex}
           />
-        {:else}
-          <div class="empty-state">
-            <div class="empty-glyph">⌨️</div>
-            <h2>CodeVault</h2>
-            <p>// select or create a project to start</p>
-            <button class="btn-primary" style="margin-top:8px" on:click={() => showProjectModal = true}>
-              Create your first project →
-            </button>
-          </div>
         {/if}
-      </main>
+      </div>
 
-      {#if activeSnippet}
-        <VersionPanel
-          snippet={activeSnippet}
-          {previewVersionIndex}
-        />
-      {/if}
-    </div>
-
-    <ProjectModal
-      open={showProjectModal}
-      onClose={() => showProjectModal = false}
-    />
+      <ProjectModal
+        open={showProjectModal}
+        onClose={() => showProjectModal = false}
+      />
+    {/if}
   {/if}
 </div>
 
