@@ -69,6 +69,8 @@
 
   $: prismLang = toPrismLang(displayLang)
 
+  $: previewLines = (displayCode ?? '').split('\n')
+
   $: highlightedPreviewHtml = (() => {
     const code = displayCode || ''
     const grammar = Prism.languages?.[prismLang]
@@ -218,7 +220,14 @@
         />
       {:else if activeTab === 'preview'}
         <div class="code-preview">
-          <pre class="language-{prismLang}"><code class="language-{prismLang}">{@html highlightedPreviewHtml}</code></pre>
+          <div class="code-preview-scroll">
+            <div class="code-gutter">
+              {#each previewLines as _, i}
+                <div class="line-no">{i + 1}</div>
+              {/each}
+            </div>
+            <pre class="language-{prismLang}"><code class="language-{prismLang}">{@html highlightedPreviewHtml}</code></pre>
+          </div>
         </div>
       {:else}
         <textarea
@@ -384,6 +393,32 @@
     padding: 24px;
     overflow: auto;
   }
+
+  .code-preview-scroll {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    min-width: max-content;
+  }
+
+  .code-gutter {
+    user-select: none;
+    text-align: right;
+    color: rgba(171, 178, 191, 0.45);
+    font-family: var(--font-mono);
+    font-size: 13.5px;
+    line-height: 1.7;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  .line-no {
+    height: calc(13.5px * 1.7);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
   .code-preview pre {
     font-family: var(--font-mono);
     font-size: 13.5px;
