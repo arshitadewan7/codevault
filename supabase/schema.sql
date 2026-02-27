@@ -84,7 +84,35 @@ alter table snippets enable row level security;
 alter table snippet_versions enable row level security;
 alter table snippet_comments enable row level security;
 
+-- Helper functions (avoid policy recursion)
+create or replace function public.is_project_member(pid uuid)
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from project_collaborators pc
+    where pc.project_id = pid and pc.user_id = auth.uid()
+  );
+$$;
+
+create or replace function public.is_project_owner(pid uuid)
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from projects p
+    where p.id = pid and p.owner_id = auth.uid()
+  );
+$$;
+
 -- Profiles
+drop policy if exists "profiles read" on profiles;
+drop policy if exists "profiles upsert" on profiles;
+drop policy if exists "profiles update" on profiles;
 create policy "profiles read" on profiles
   for select using (auth.uid() = id);
 
@@ -95,13 +123,13 @@ create policy "profiles update" on profiles
   for update using (auth.uid() = id);
 
 -- Projects
+drop policy if exists "projects read" on projects;
+drop policy if exists "projects write" on projects;
+drop policy if exists "projects update" on projects;
+drop policy if exists "projects delete" on projects;
 create policy "projects read" on projects
   for select using (
-    owner_id = auth.uid() or
-    exists (
-      select 1 from project_collaborators pc
-      where pc.project_id = id and pc.user_id = auth.uid()
-    )
+    owner_id = auth.uid() or public.is_project_member(id)
   );
 
 create policy "projects write" on projects
@@ -114,59 +142,61 @@ create policy "projects delete" on projects
   for delete using (auth.uid() = owner_id);
 
 -- Collaborators
+drop policy if exists "collaborators read" on project_collaborators;
+drop policy if exists "collaborators manage" on project_collaborators;
+drop policy if exists "collaborators update" on project_collaborators;
+drop policy if exists "collaborators delete" on project_collaborators;
 create policy "collaborators read" on project_collaborators
   for select using (
-    exists (
-      select 1 from projects p
-      where p.id = project_id and (p.owner_id = auth.uid())
-    ) or user_id = auth.uid()
+    public.is_project_owner(project_id) or user_id = auth.uid()
   );
 
 create policy "collaborators manage" on project_collaborators
   for insert with check (
-    exists (select 1 from projects p where p.id = project_id and p.owner_id = auth.uid())
+    public.is_project_owner(project_id)
   );
 
 create policy "collaborators update" on project_collaborators
   for update using (
-    exists (select 1 from projects p where p.id = project_id and p.owner_id = auth.uid())
+    public.is_project_owner(project_id)
   );
 
 create policy "collaborators delete" on project_collaborators
   for delete using (
-    exists (select 1 from projects p where p.id = project_id and p.owner_id = auth.uid())
+    public.is_project_owner(project_id)
   );
 
 -- Invites
+drop policy if exists "invites read" on project_invites;
+drop policy if exists "invites manage" on project_invites;
+drop policy if exists "invites update" on project_invites;
+drop policy if exists "invites delete" on project_invites;
 create policy "invites read" on project_invites
   for select using (
-    exists (select 1 from projects p where p.id = project_id and p.owner_id = auth.uid())
+    public.is_project_owner(project_id)
     or email = (select email from auth.users where id = auth.uid())
   );
 
 create policy "invites manage" on project_invites
   for insert with check (
-    exists (select 1 from projects p where p.id = project_id and p.owner_id = auth.uid())
+    public.is_project_owner(project_id)
   );
 
 create policy "invites update" on project_invites
   for update using (
-    exists (select 1 from projects p where p.id = project_id and p.owner_id = auth.uid())
+    public.is_project_owner(project_id)
     or email = (select email from auth.users where id = auth.uid())
   );
 
 create policy "invites delete" on project_invites
   for delete using (
-    exists (select 1 from projects p where p.id = project_id and p.owner_id = auth.uid())
+    public.is_project_owner(project_id)
   );
 
 -- Snippets
 create policy "snippets read" on snippets
   for select using (
-    exists (
-      select 1 from project_collaborators pc
-      where pc.project_id = project_id and pc.user_id = auth.uid()
-    )
+    public.is_project_member(project_id)
   );
 
 create policy "snippets write" on snippets
