@@ -548,27 +548,35 @@ function createStore() {
       created_at: nowIso(),
       author_id: state.user?.id,
     }
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('snippet_versions')
       .insert(payload)
-      .select('*')
-      .single()
     if (error) {
       alert(error.message)
       return
     }
-    if (data) {
-      update(s => {
-        for (const p of s.projects) {
-          const sn = p.snippets.find(sn => sn.id === snippetId)
-          if (sn) {
-            sn.versions = [data, ...(sn.versions || [])]
-            break
-          }
-        }
-        return s
-      })
+
+    const { data: versions, error: fetchError } = await supabase
+      .from('snippet_versions')
+      .select('*')
+      .eq('snippet_id', snippetId)
+      .order('created_at', { ascending: false })
+
+    if (fetchError) {
+      alert(fetchError.message)
+      return
     }
+
+    update(s => {
+      for (const p of s.projects) {
+        const sn = p.snippets.find(sn => sn.id === snippetId)
+        if (sn) {
+          sn.versions = versions || []
+          break
+        }
+      }
+      return s
+    })
   }
 
   async function restoreVersion(snippetId, versionIndex) {

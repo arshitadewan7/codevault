@@ -174,7 +174,7 @@ drop policy if exists "invites delete" on project_invites;
 create policy "invites read" on project_invites
   for select using (
     public.is_project_owner(project_id)
-    or email = (select email from auth.users where id = auth.uid())
+    or email = auth.email()
   );
 
 create policy "invites manage" on project_invites
@@ -185,7 +185,7 @@ create policy "invites manage" on project_invites
 create policy "invites update" on project_invites
   for update using (
     public.is_project_owner(project_id)
-    or email = (select email from auth.users where id = auth.uid())
+    or email = auth.email()
   );
 
 create policy "invites delete" on project_invites

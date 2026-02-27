@@ -50,7 +50,13 @@
   {#if route.name === 'share'}
     <Share payloadStr={route.payloadStr} />
   {:else}
-    {#if !user}
+    {#if loading}
+      <div class="empty-state">
+        <div class="empty-glyph">⏳</div>
+        <h2>Loading workspace…</h2>
+        <p>// syncing with Supabase</p>
+      </div>
+    {:else if !user}
       <Login
         {authStatus}
         {authError}
@@ -58,12 +64,6 @@
         onSignup={(email, password) => store.signup(email, password)}
         onReset={() => store.clearAuthError()}
       />
-    {:else if loading}
-      <div class="empty-state">
-        <div class="empty-glyph">⏳</div>
-        <h2>Loading workspace…</h2>
-        <p>// syncing with Supabase</p>
-      </div>
     {:else}
       <header>
         <div class="logo">
