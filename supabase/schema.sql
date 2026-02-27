@@ -1,6 +1,8 @@
 -- Enable UUID generation
 create extension if not exists "pgcrypto";
 
+-- hello 
+
 -- Profiles
 create table if not exists profiles (
   id uuid primary key references auth.users(id) on delete cascade,
