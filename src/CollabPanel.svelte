@@ -5,6 +5,7 @@
 
   let inviteEmail = ''
   let inviteRole = 'editor'
+  let collapsed = false
 
   $: collaborators = project?.collaborators || []
   $: invites = project?.invites || []
@@ -38,71 +39,80 @@
 </script>
 
 {#if project}
-  <aside class="collab-panel">
+  <aside class="collab-panel" class:collapsed={collapsed}>
     <div class="panel-header">
-      <h3>Collaboration</h3>
-      <span class="role-chip">{role || 'Viewer'}</span>
-    </div>
-
-    <div class="panel-section">
-      <div class="section-title">People</div>
-      <div class="collab-list">
-        {#each collaborators as collab (collab.id)}
-          <div class="collab-row">
-            <div class="collab-avatar">{roleLabel(collab.user_id)[0]}</div>
-            <div class="collab-meta">
-              <div class="collab-name">{roleLabel(collab.user_id)}</div>
-              <div class="collab-role">{collab.role}</div>
-            </div>
-            {#if canManage() && collab.role !== 'owner'}
-              <button class="btn-remove" on:click={() => removeCollaborator(collab)}>Remove</button>
-            {/if}
-          </div>
-        {/each}
+      <div class="panel-title" class:collapsed={collapsed}>
+        <h3>Collab</h3>
+        {#if !collapsed}
+          <span class="role-chip">{role || 'Viewer'}</span>
+        {/if}
       </div>
+      <button class="collapse-btn" on:click={() => collapsed = !collapsed}>
+        {collapsed ? '→' : '←'}
+      </button>
     </div>
 
-    <div class="panel-section">
-      <div class="section-title">Invites</div>
-      <div class="invite-list">
-        {#if invites.length}
-          {#each invites as invite (invite.id)}
-            <div class="invite-row">
-              <div class="invite-email">{invite.email}</div>
-              <div class="invite-role">{invite.role}</div>
-              <div class="invite-status">{invite.status}</div>
-              {#if invite.status === 'pending'}
-                <button class="btn-accept" on:click={() => acceptInvite(invite)}>Accept</button>
+    {#if !collapsed}
+      <div class="panel-section">
+        <div class="section-title">People</div>
+        <div class="collab-list">
+          {#each collaborators as collab (collab.id)}
+            <div class="collab-row">
+              <div class="collab-avatar">{roleLabel(collab.user_id)[0]}</div>
+              <div class="collab-meta">
+                <div class="collab-name">{roleLabel(collab.user_id)}</div>
+                <div class="collab-role">{collab.role}</div>
+              </div>
+              {#if canManage() && collab.role !== 'owner'}
+                <button class="btn-remove" on:click={() => removeCollaborator(collab)}>Remove</button>
               {/if}
             </div>
           {/each}
-        {:else}
-          <div class="invite-empty">No pending invites.</div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="section-title">Invites</div>
+        <div class="invite-list">
+          {#if invites.length}
+            {#each invites as invite (invite.id)}
+              <div class="invite-row">
+                <div class="invite-email">{invite.email}</div>
+                <div class="invite-role">{invite.role}</div>
+                <div class="invite-status">{invite.status}</div>
+                {#if invite.status === 'pending'}
+                  <button class="btn-accept" on:click={() => acceptInvite(invite)}>Accept</button>
+                {/if}
+              </div>
+            {/each}
+          {:else}
+            <div class="invite-empty">No pending invites.</div>
+          {/if}
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="section-title">Invite someone</div>
+        <div class="invite-form">
+          <input
+            type="email"
+            placeholder="collaborator@email.com"
+            bind:value={inviteEmail}
+            disabled={!canManage()}
+          />
+          <select bind:value={inviteRole} disabled={!canManage()}>
+            <option value="editor">Editor</option>
+            <option value="viewer">Viewer</option>
+          </select>
+          <button class="btn-send" disabled={!inviteEmail.trim() || !canManage()} on:click={sendInvite}>
+            Send invite
+          </button>
+        </div>
+        {#if !canManage()}
+          <div class="hint">Only owners can invite collaborators.</div>
         {/if}
       </div>
-    </div>
-
-    <div class="panel-section">
-      <div class="section-title">Invite someone</div>
-      <div class="invite-form">
-        <input
-          type="email"
-          placeholder="collaborator@email.com"
-          bind:value={inviteEmail}
-          disabled={!canManage()}
-        />
-        <select bind:value={inviteRole} disabled={!canManage()}>
-          <option value="editor">Editor</option>
-          <option value="viewer">Viewer</option>
-        </select>
-        <button class="btn-send" disabled={!inviteEmail.trim() || !canManage()} on:click={sendInvite}>
-          Send invite
-        </button>
-      </div>
-      {#if !canManage()}
-        <div class="hint">Only owners can invite collaborators.</div>
-      {/if}
-    </div>
+    {/if}
   </aside>
 {/if}
 
@@ -124,6 +134,18 @@
     align-items: center;
   }
 
+  .panel-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .panel-title.collapsed {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    gap: 0;
+  }
+
   .panel-header h3 {
     font-size: 12px;
     text-transform: uppercase;
@@ -138,6 +160,34 @@
     padding: 2px 8px;
     border-radius: 999px;
     color: var(--text-dim);
+  }
+
+  .collapse-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 10px;
+    cursor: pointer;
+  }
+
+  .collapse-btn:hover { color: var(--text); border-color: var(--accent); }
+
+  .collab-panel.collapsed {
+    width: 44px;
+    padding: 12px 8px;
+    overflow: hidden;
+    align-items: center;
+  }
+
+  .collab-panel.collapsed .panel-header {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .collab-panel.collapsed .panel-section {
+    display: none;
   }
 
   .panel-section { display: flex; flex-direction: column; gap: 10px; }
