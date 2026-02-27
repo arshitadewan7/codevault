@@ -392,17 +392,24 @@ function createStore() {
     })
   }
 
-  async function login(email) {
+  async function login(email, password) {
     update(s => ({ ...s, authStatus: 'sending', authError: null }))
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: window.location.origin },
-    })
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
       update(s => ({ ...s, authStatus: 'error', authError: error.message }))
       return
     }
-    update(s => ({ ...s, authStatus: 'sent', authError: null }))
+    update(s => ({ ...s, authStatus: 'idle', authError: null }))
+  }
+
+  async function signup(email, password) {
+    update(s => ({ ...s, authStatus: 'sending', authError: null }))
+    const { error } = await supabase.auth.signUp({ email, password })
+    if (error) {
+      update(s => ({ ...s, authStatus: 'error', authError: error.message }))
+      return
+    }
+    update(s => ({ ...s, authStatus: 'idle', authError: null }))
   }
 
   async function logout() {
@@ -414,7 +421,7 @@ function createStore() {
     if (!state.user) return null
     const { data, error } = await supabase
       .from('projects')
-      .insert({ name, color, desc, owner_id: state.user.id })
+      .insert({ name, color, "desc": desc, owner_id: state.user.id })
       .select('*')
       .single()
     if (error) {
@@ -673,6 +680,7 @@ function createStore() {
     subscribe,
     init,
     login,
+    signup,
     logout,
     createProject,
     deleteProject,

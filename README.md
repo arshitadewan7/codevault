@@ -17,7 +17,7 @@ A code notes app with formatting preservation and version control.
 
 ### Configure Supabase
 
-1. Create a Supabase project and enable Email Magic Link auth.
+1. Create a Supabase project and enable Email/Password auth.
 2. Run the SQL in `supabase/schema.sql` in the Supabase SQL editor.
 3. Create `.env` with:
 

@@ -1,14 +1,19 @@
 <script>
   export let onLogin = () => {}
+  export let onSignup = () => {}
   export let authStatus = 'idle'
   export let authError = null
 
   let email = ''
+  let password = ''
+
+  let mode = 'login'
 
   function submit() {
     const v = (email || '').trim()
-    if (!v) return
-    onLogin(v)
+    if (!v || !password) return
+    if (mode === 'login') onLogin(v, password)
+    else onSignup(v, password)
   }
 </script>
 
@@ -37,25 +42,39 @@
             bind:value={email}
             on:keydown={(e) => e.key === 'Enter' && submit()}
           />
+          <input
+            class="password"
+            type="password"
+            placeholder="password"
+            bind:value={password}
+            on:keydown={(e) => e.key === 'Enter' && submit()}
+          />
         </div>
         <button class="btn-primary" on:click={submit} disabled={authStatus === 'sending'}>
-          {authStatus === 'sending' ? 'Sending…' : 'Log in'}
+          {authStatus === 'sending' ? 'Working…' : mode === 'login' ? 'Log in' : 'Sign up'}
         </button>
       </div>
 
-      {#if authStatus === 'sent'}
-        <div class="fineprint success">
-          Magic link sent. Check your inbox to continue.
-        </div>
-      {:else if authError}
+      {#if authError}
         <div class="fineprint error">
           {authError}
         </div>
       {:else}
         <div class="fineprint">
-          We'll send a magic link to your email.
+          Use an email and password to {mode === 'login' ? 'log in' : 'create an account'}.
         </div>
       {/if}
+
+      <div class="mode-toggle">
+        <button
+          class:active={mode === 'login'}
+          on:click={() => mode = 'login'}
+        >Login</button>
+        <button
+          class:active={mode === 'signup'}
+          on:click={() => mode = 'signup'}
+        >Sign up</button>
+      </div>
     </div>
   </div>
 </div>
@@ -153,9 +172,13 @@
   .input-wrap {
     flex: 1;
     min-width: 240px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
   }
 
-  .email {
+  .email,
+  .password {
     width: 100%;
     background: rgba(26, 30, 42, 0.95);
     border: 1px solid rgba(255,255,255,0.08);
@@ -167,7 +190,8 @@
     transition: border 0.15s, box-shadow 0.15s;
   }
 
-  .email:focus {
+  .email:focus,
+  .password:focus {
     border-color: rgba(91,138,255,0.8);
     box-shadow: 0 0 0 4px rgba(91,138,255,0.15);
   }
@@ -177,8 +201,30 @@
     font-size: 12px;
     color: rgba(148, 163, 184, 0.85);
   }
-  .fineprint.success { color: rgba(74,222,128,0.9); }
   .fineprint.error { color: rgba(255,107,107,0.9); }
+
+  .mode-toggle {
+    margin-top: 18px;
+    display: inline-flex;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .mode-toggle button {
+    background: transparent;
+    color: var(--text-muted);
+    border: none;
+    padding: 6px 14px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: var(--font-sans);
+  }
+
+  .mode-toggle button.active {
+    background: rgba(91,138,255,0.15);
+    color: var(--accent);
+  }
 
   @media (max-width: 520px) {
     h1 { font-size: 34px; }

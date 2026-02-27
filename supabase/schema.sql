@@ -16,7 +16,7 @@ create table if not exists projects (
   owner_id uuid references auth.users(id) on delete cascade,
   name text not null,
   color text,
-  desc text,
+  "desc" text,
   open boolean default true,
   created_at timestamptz default now()
 );
