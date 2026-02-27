@@ -8,10 +8,10 @@
   let desc = ''
   let selectedColor = COLORS[0]
 
-  function handleCreate() {
+  async function handleCreate() {
     if (!name.trim()) return
-    const proj = store.createProject({ name: name.trim(), color: selectedColor, desc: desc.trim() })
-    store.createSnippet(proj.id)
+    const proj = await store.createProject({ name: name.trim(), color: selectedColor, desc: desc.trim() })
+    if (proj) await store.createSnippet(proj.id)
     name = ''
     desc = ''
     selectedColor = COLORS[0]
@@ -47,8 +47,8 @@
       </div>
 
       <div class="form-group">
-        <label id="proj-color-label">Color</label>
-        <div class="swatches" role="group" aria-labelledby="proj-color-label">
+        <div class="form-label">Color</div>
+        <div class="swatches" role="group" aria-label="Project color">
           {#each COLORS as color}
             <button
               class="swatch"
@@ -115,7 +115,8 @@
 
   .form-group { margin-bottom: 16px; }
 
-  label {
+  label,
+  .form-label {
     display: block;
     font-size: 12px;
     font-weight: 600;

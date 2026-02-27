@@ -24,6 +24,12 @@
     store.deleteSnippet(proj.id, snippet.id)
   }
 
+  function roleLabel(project) {
+    const role = store.getRole(project.id)
+    if (!role) return ''
+    return role === 'owner' ? 'Owner' : role === 'editor' ? 'Editor' : 'Viewer'
+  }
+
   $: filtered = projects.map(p => ({
     ...p,
     filteredSnippets: searchQuery
@@ -69,6 +75,7 @@
                 {projectEmoji(proj.name)}
               </div>
               <span class="project-name">{proj.name}</span>
+              <span class="project-role">{roleLabel(proj)}</span>
               <span class="project-count">{proj.snippets.length}</span>
             </button>
 
@@ -234,6 +241,16 @@
     border-radius: 10px;
   }
 
+  .project-role {
+    font-size: 9px;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
   .snippet-list {
     margin-left: 20px;
     border-left: 1px solid var(--border);
@@ -287,4 +304,8 @@
     margin-top: 8px;
   }
   .new-project-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  @media (max-width: 1100px) {
+    .sidebar { width: 100%; height: 280px; border-right: none; border-bottom: 1px solid var(--border); }
+  }
 </style>

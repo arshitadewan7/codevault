@@ -31,6 +31,9 @@
   export let project = null
   export let previewVersionIndex = null
 
+  $: user = $store.user
+  $: presence = $store.presence
+
   let activeTab = 'code'
   let copyFlash = false
   let shareFlash = false
@@ -52,7 +55,8 @@
     ? (snippet?.versions?.[previewVersionIndex]?.lang ?? snippet?.lang ?? 'javascript')
     : (snippet?.lang ?? 'javascript')
 
-  $: isReadOnly = previewVersionIndex !== null
+  $: canEdit = !!project && (store.getRole(project.id) !== 'viewer')
+  $: isReadOnly = previewVersionIndex !== null || !canEdit
 
   function escapeHtml(str) {
     return (str || '')
@@ -158,6 +162,24 @@
   $: versionLabel = previewVersionIndex !== null
     ? `v${(snippet?.versions?.length ?? 0) - previewVersionIndex}`
     : ''
+
+  let commentBody = ''
+
+  async function submitComment() {
+    if (!snippet || !commentBody.trim()) return
+    await store.addComment(snippet.id, commentBody.trim())
+    commentBody = ''
+  }
+
+  function deleteComment(comment) {
+    if (!comment) return
+    store.deleteComment(comment.id)
+  }
+
+  function userLabel(userId) {
+    const profile = store.profileFor(userId)
+    return profile?.full_name || profile?.email || 'User'
+  }
 </script>
 
 <div class="snippet-view">
@@ -177,6 +199,15 @@
       readonly={isReadOnly}
       on:input={onTitleInput}
     />
+    {#if presence.length}
+      <div class="presence">
+        {#each presence as member (member.user_id)}
+          <div class="presence-pill" title={member.email || 'Collaborator'} style="--presence:{member.color}">
+            {member.email ? member.email[0].toUpperCase() : '•'}
+          </div>
+        {/each}
+      </div>
+    {/if}
     <select class="lang-select" value={displayLang} disabled={isReadOnly} on:change={onLangChange}>
       {#each LANGUAGES as lang}
         <option value={lang}>{lang}</option>
@@ -191,7 +222,7 @@
     <button class="btn-sm" disabled={isReadOnly} on:click={removeNotes}>
       remove notes
     </button>
-    <button class="btn-danger" on:click={deleteSnippet}>delete</button>
+    <button class="btn-danger" disabled={!canEdit} on:click={deleteSnippet}>delete</button>
   </div>
 
   <div class="snippet-body">
@@ -241,6 +272,41 @@
           on:input={onNotesInput}
         />
       {/if}
+      <div class="comments">
+        <div class="comments-header">Comments</div>
+        <div class="comment-list">
+          {#if snippet?.comments?.length}
+            {#each snippet.comments as comment (comment.id)}
+              <div class="comment-row">
+                <div class="comment-avatar">{userLabel(comment.author_id)[0]}</div>
+                <div class="comment-body">
+                  <div class="comment-meta">
+                    <span>{userLabel(comment.author_id)}</span>
+                    <span class="comment-time">{new Date(comment.created_at).toLocaleString()}</span>
+                  </div>
+                  <div class="comment-text">{comment.body}</div>
+                </div>
+                {#if comment.author_id === user?.id}
+                  <button class="comment-delete" on:click={() => deleteComment(comment)}>×</button>
+                {/if}
+              </div>
+            {/each}
+          {:else}
+            <div class="comment-empty">No comments yet.</div>
+          {/if}
+        </div>
+        <div class="comment-input">
+          <textarea
+            rows="2"
+            bind:value={commentBody}
+            placeholder={canEdit ? 'Add a comment…' : 'You have view access'}
+            disabled={!canEdit}
+          />
+          <button class="btn-sm" disabled={!commentBody.trim() || !canEdit} on:click={submitComment}>
+            Post
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -274,6 +340,27 @@
     gap: 12px;
     flex-wrap: wrap;
     background: var(--surface);
+  }
+
+  .presence {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .presence-pill {
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.5), 0 0 0 4px var(--presence);
   }
 
   .snippet-title-input {
@@ -369,6 +456,128 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+  }
+
+  .comments {
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    padding: 16px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .comments-header {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    font-weight: 700;
+  }
+
+  .comment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 180px;
+    overflow-y: auto;
+  }
+
+  .comment-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+  }
+
+  .comment-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 10px;
+    background: rgba(91,138,255,0.15);
+    color: var(--accent);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+  }
+
+  .comment-body { flex: 1; }
+
+  .comment-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .comment-meta span:first-child {
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .comment-text {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.5;
+    white-space: pre-wrap;
+  }
+
+  .comment-time { font-family: var(--font-mono); }
+
+  .comment-delete {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  .comment-delete:hover {
+    border-color: var(--border);
+    color: var(--accent2);
+  }
+
+  .comment-empty {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .comment-input {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .comment-input textarea {
+    flex: 1;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--font-sans);
+    padding: 10px;
+    resize: vertical;
+  }
+
+  .comment-input textarea:disabled {
+    opacity: 0.6;
+  }
+
+  @media (max-width: 1100px) {
+    .comments {
+      max-height: 240px;
+      overflow: auto;
+    }
   }
 
   .code-editor {

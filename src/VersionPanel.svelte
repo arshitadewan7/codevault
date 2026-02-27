@@ -4,11 +4,13 @@
   export let snippet = null
   export let previewVersionIndex = null
 
+  $: canEdit = snippet && store.getRole(snippet.project_id) !== 'viewer'
+
   let commitMsg = ''
   let saveFlash = false
 
   function handleSave() {
-    if (!snippet) return
+    if (!snippet || !canEdit) return
     store.saveVersion(snippet.id, commitMsg)
     commitMsg = ''
     saveFlash = true
@@ -38,7 +40,7 @@
   }
 
   function clearAllVersions() {
-    if (!snippet) return
+    if (!snippet || !canEdit) return
     if (!confirm('Delete all saved versions?')) return
     store.clearVersions(snippet.id)
   }
@@ -76,7 +78,7 @@
             v{snippet.versions.length - i}
           </div>
           <div class="version-msg">{version.msg}</div>
-          <div class="version-time">{timeLabel(version.timestamp)}</div>
+          <div class="version-time">{timeLabel(version.created_at || version.timestamp)}</div>
         </button>
 
         <button
@@ -98,11 +100,11 @@
       maxlength="60"
       on:keydown={e => e.key === 'Enter' && handleSave()}
     />
-    <button class="save-btn" on:click={handleSave}>
+    <button class="save-btn" disabled={!canEdit} on:click={handleSave}>
       {saveFlash ? '✓ Saved!' : '💾 Save Version'}
     </button>
     {#if (snippet.versions || []).length}
-      <button class="btn-clear" on:click={clearAllVersions}>
+      <button class="btn-clear" disabled={!canEdit} on:click={clearAllVersions}>
         Clear saved versions
       </button>
     {/if}
@@ -293,4 +295,13 @@
     transition: all 0.15s;
   }
   .btn-clear:hover { border-color: rgba(255,107,107,0.35); color: var(--accent2); background: rgba(255,107,107,0.06); }
+
+  @media (max-width: 1100px) {
+    .version-panel {
+      width: 100%;
+      border-left: none;
+      border-top: 1px solid var(--border);
+      height: 320px;
+    }
+  }
 </style>

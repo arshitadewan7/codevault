@@ -10,9 +10,21 @@ A code notes app with formatting preservation and version control.
 - **3 views per snippet** — Code editor, Preview (read-only render), Notes (free text)
 - **Copy button** — copies raw code to clipboard with formatting intact
 - **Search** — fuzzy search across all projects and snippets
-- **Persistent** — all data saved to `localStorage`
+- **Persistent** — saved to Supabase with realtime sync and presence
+- **Collaboration** — invite editors/viewers, presence, comments
 
 ## Getting Started
+
+### Configure Supabase
+
+1. Create a Supabase project and enable Email Magic Link auth.
+2. Run the SQL in `supabase/schema.sql` in the Supabase SQL editor.
+3. Create `.env` with:
+
+```bash
+VITE_SUPABASE_URL=your-project-url
+VITE_SUPABASE_ANON_KEY=your-anon-key
+```
 
 ```bash
 npm install
@@ -32,4 +44,4 @@ npm run preview
 
 - [Svelte 4](https://svelte.dev)
 - [Vite 5](https://vitejs.dev)
-- [JetBrains Mono](https://www.jetbrains.com/lp/mono/) + [Syne](https://fonts.google.com/specimen/Syne) fonts
+- [JetBrains Mono](https://www.jetbrains.com/lp/mono/) + [Manrope](https://fonts.google.com/specimen/Manrope) fonts

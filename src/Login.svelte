@@ -1,5 +1,7 @@
 <script>
   export let onLogin = () => {}
+  export let authStatus = 'idle'
+  export let authError = null
 
   let email = ''
 
@@ -36,12 +38,24 @@
             on:keydown={(e) => e.key === 'Enter' && submit()}
           />
         </div>
-        <button class="btn-primary" on:click={submit}>Log in</button>
+        <button class="btn-primary" on:click={submit} disabled={authStatus === 'sending'}>
+          {authStatus === 'sending' ? 'Sending…' : 'Log in'}
+        </button>
       </div>
 
-      <div class="fineprint">
-        No password yet — this is a local demo login.
-      </div>
+      {#if authStatus === 'sent'}
+        <div class="fineprint success">
+          Magic link sent. Check your inbox to continue.
+        </div>
+      {:else if authError}
+        <div class="fineprint error">
+          {authError}
+        </div>
+      {:else}
+        <div class="fineprint">
+          We'll send a magic link to your email.
+        </div>
+      {/if}
     </div>
   </div>
 </div>
@@ -163,6 +177,8 @@
     font-size: 12px;
     color: rgba(148, 163, 184, 0.85);
   }
+  .fineprint.success { color: rgba(74,222,128,0.9); }
+  .fineprint.error { color: rgba(255,107,107,0.9); }
 
   @media (max-width: 520px) {
     h1 { font-size: 34px; }

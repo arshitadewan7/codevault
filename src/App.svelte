@@ -6,6 +6,7 @@
   import SnippetEditor from './SnippetEditor.svelte'
   import VersionPanel from './VersionPanel.svelte'
   import ProjectModal from './ProjectModal.svelte'
+  import CollabPanel from './CollabPanel.svelte'
 
   let showProjectModal = false
 
@@ -27,12 +28,19 @@
     window.addEventListener('hashchange', syncRoute)
   }
 
+  if (typeof window !== 'undefined') {
+    store.init()
+  }
+
   $: state = $store
   $: projects = state.projects
   $: activeProjectId = state.activeProjectId
   $: activeSnippetId = state.activeSnippetId
   $: previewVersionIndex = state.previewVersionIndex
   $: user = state.user
+  $: loading = state.loading
+  $: authStatus = state.authStatus
+  $: authError = state.authError
 
   $: activeProject = projects.find(p => p.id === activeProjectId) ?? null
   $: activeSnippet = activeProject?.snippets.find(s => s.id === activeSnippetId) ?? null
@@ -43,7 +51,13 @@
     <Share payloadStr={route.payloadStr} />
   {:else}
     {#if !user}
-      <Login onLogin={(email) => store.login(email)} />
+      <Login {authStatus} {authError} onLogin={(email) => store.login(email)} />
+    {:else if loading}
+      <div class="empty-state">
+        <div class="empty-glyph">⏳</div>
+        <h2>Loading workspace…</h2>
+        <p>// syncing with Supabase</p>
+      </div>
     {:else}
       <header>
         <div class="logo">
@@ -98,6 +112,10 @@
             {previewVersionIndex}
           />
         {/if}
+
+        {#if activeProject}
+          <CollabPanel project={activeProject} />
+        {/if}
       </div>
 
       <ProjectModal
@@ -112,7 +130,7 @@
   :global(*) { margin: 0; padding: 0; box-sizing: border-box; }
 
   :global(:root) {
-    --font-sans: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    --font-sans: 'Manrope', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
     --font-display: 'DM Serif Display', ui-serif, Georgia, 'Times New Roman', Times, serif;
     --font-logo: var(--font-display);
     --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
@@ -214,6 +232,10 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+  }
+
+  @media (max-width: 1100px) {
+    .app-body { flex-direction: column; }
   }
 
   .empty-state {
