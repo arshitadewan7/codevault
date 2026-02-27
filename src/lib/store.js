@@ -544,8 +544,27 @@ function createStore() {
       created_at: nowIso(),
       author_id: state.user?.id,
     }
-    const { error } = await supabase.from('snippet_versions').insert(payload)
-    if (error) alert(error.message)
+    const { data, error } = await supabase
+      .from('snippet_versions')
+      .insert(payload)
+      .select('*')
+      .single()
+    if (error) {
+      alert(error.message)
+      return
+    }
+    if (data) {
+      update(s => {
+        for (const p of s.projects) {
+          const sn = p.snippets.find(sn => sn.id === snippetId)
+          if (sn) {
+            sn.versions = [data, ...(sn.versions || [])]
+            break
+          }
+        }
+        return s
+      })
+    }
   }
 
   async function restoreVersion(snippetId, versionIndex) {
