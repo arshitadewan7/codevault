@@ -55,7 +55,11 @@
         </button>
       </div>
 
-      {#if authError}
+      {#if authStatus === 'signup-success'}
+        <div class="fineprint success">
+          Account created. Check your email to confirm and then log in.
+        </div>
+      {:else if authError}
         <div class="fineprint error">
           {authError}
         </div>
@@ -201,6 +205,7 @@
     font-size: 12px;
     color: rgba(148, 163, 184, 0.85);
   }
+  .fineprint.success { color: rgba(74,222,128,0.9); }
   .fineprint.error { color: rgba(255,107,107,0.9); }
 
   .mode-toggle {

@@ -404,12 +404,20 @@ function createStore() {
 
   async function signup(email, password) {
     update(s => ({ ...s, authStatus: 'sending', authError: null }))
-    const { error } = await supabase.auth.signUp({ email, password })
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: window.location.origin },
+    })
     if (error) {
       update(s => ({ ...s, authStatus: 'error', authError: error.message }))
       return
     }
-    update(s => ({ ...s, authStatus: 'idle', authError: null }))
+    if (data?.session) {
+      update(s => ({ ...s, authStatus: 'idle', authError: null }))
+      return
+    }
+    update(s => ({ ...s, authStatus: 'signup-success', authError: null }))
   }
 
   async function logout() {
