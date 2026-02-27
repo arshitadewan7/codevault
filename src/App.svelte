@@ -51,7 +51,13 @@
     <Share payloadStr={route.payloadStr} />
   {:else}
     {#if !user}
-      <Login {authStatus} {authError} onLogin={(email, password) => store.login(email, password)} onSignup={(email, password) => store.signup(email, password)} />
+      <Login
+        {authStatus}
+        {authError}
+        onLogin={(email, password) => store.login(email, password)}
+        onSignup={(email, password) => store.signup(email, password)}
+        onReset={() => store.clearAuthError()}
+      />
     {:else if loading}
       <div class="empty-state">
         <div class="empty-glyph">⏳</div>

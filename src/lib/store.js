@@ -424,6 +424,10 @@ function createStore() {
     await supabase.auth.signOut()
   }
 
+  function clearAuthError() {
+    update(s => ({ ...s, authStatus: 'idle', authError: null }))
+  }
+
   async function createProject({ name, color, desc }) {
     const state = get({ subscribe })
     if (!state.user) return null
@@ -709,6 +713,7 @@ function createStore() {
     login,
     signup,
     logout,
+    clearAuthError,
     createProject,
     deleteProject,
     toggleProject,

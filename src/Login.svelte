@@ -1,87 +1,129 @@
 <script>
   export let onLogin = () => {}
   export let onSignup = () => {}
+  export let onReset = () => {}
   export let authStatus = 'idle'
   export let authError = null
 
   let email = ''
   let password = ''
-
+  let confirmPassword = ''
   let mode = 'login'
 
   function submit() {
     const v = (email || '').trim()
     if (!v || !password) return
-    if (mode === 'login') onLogin(v, password)
-    else onSignup(v, password)
+    if (mode === 'login') {
+      onLogin(v, password)
+      return
+    }
+    if (password !== confirmPassword) return
+    onSignup(v, password)
   }
+
+  function switchMode(next) {
+    mode = next
+    onReset()
+    password = ''
+    confirmPassword = ''
+  }
+
+  $: passwordMismatch = mode === 'signup' && confirmPassword && password !== confirmPassword
 </script>
 
-<div class="login">
-  <div class="hero">
-    <div class="hero-card">
-      <div class="brand">
-        <div class="brand-dot" />
-        <div class="brand-name">Code<span>Vault</span></div>
-      </div>
-
-      <h1>Store your best code.
-        <span class="accent">Find it instantly.</span>
-      </h1>
-
-      <p class="subtitle">
-        A minimal, versioned snippet vault designed for focus.
-      </p>
-
-      <div class="cta-row">
-        <div class="input-wrap">
-          <input
-            class="email"
-            type="email"
-            placeholder="you@company.com"
-            bind:value={email}
-            on:keydown={(e) => e.key === 'Enter' && submit()}
-          />
-          <input
-            class="password"
-            type="password"
-            placeholder="password"
-            bind:value={password}
-            on:keydown={(e) => e.key === 'Enter' && submit()}
-          />
+  <div class="login">
+    <div class="hero">
+      <div class="hero-card">
+        <div class="brand">
+          <div class="brand-dot" />
+          <div class="brand-name">Code<span>Vault</span></div>
         </div>
-        <button class="btn-primary" on:click={submit} disabled={authStatus === 'sending'}>
-          {authStatus === 'sending' ? 'Working…' : mode === 'login' ? 'Log in' : 'Sign up'}
-        </button>
-      </div>
 
-      {#if authStatus === 'signup-success'}
-        <div class="fineprint success">
-          Account created. Check your email to confirm and then log in.
-        </div>
-      {:else if authError}
-        <div class="fineprint error">
-          {authError}
-        </div>
-      {:else}
-        <div class="fineprint">
-          Use an email and password to {mode === 'login' ? 'log in' : 'create an account'}.
-        </div>
-      {/if}
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <h1>Store your best code.
+              <span class="accent">Find it instantly.</span>
+            </h1>
+            <p class="subtitle">
+              A minimal, versioned snippet vault designed for focus and collaboration.
+            </p>
+            <div class="hero-meta">
+              <div class="meta-pill">Realtime sync</div>
+              <div class="meta-pill">Comments</div>
+              <div class="meta-pill">Version snapshots</div>
+            </div>
+          </div>
 
-      <div class="mode-toggle">
-        <button
-          class:active={mode === 'login'}
-          on:click={() => mode = 'login'}
-        >Login</button>
-        <button
-          class:active={mode === 'signup'}
-          on:click={() => mode = 'signup'}
-        >Sign up</button>
+          <div class="auth-card">
+            <div class="mode-toggle">
+              <button
+                class:active={mode === 'login'}
+                on:click={() => switchMode('login')}
+              >Login</button>
+              <button
+                class:active={mode === 'signup'}
+                on:click={() => switchMode('signup')}
+              >Sign up</button>
+            </div>
+
+            <label class="input-label" for="auth-email">Email</label>
+            <input
+              id="auth-email"
+              class="email"
+              type="email"
+              placeholder="you@company.com"
+              bind:value={email}
+              on:keydown={(e) => e.key === 'Enter' && submit()}
+            />
+
+            <label class="input-label" for="auth-password">Password</label>
+            <input
+              id="auth-password"
+              class="password"
+              type="password"
+              placeholder="minimum 8 characters"
+              bind:value={password}
+              on:keydown={(e) => e.key === 'Enter' && submit()}
+            />
+
+            {#if mode === 'signup'}
+              <label class="input-label" for="auth-confirm">Confirm password</label>
+              <input
+                id="auth-confirm"
+                class="password"
+                type="password"
+                placeholder="re-enter password"
+                bind:value={confirmPassword}
+                on:keydown={(e) => e.key === 'Enter' && submit()}
+              />
+            {/if}
+
+            <button
+              class="btn-primary"
+              on:click={submit}
+              disabled={authStatus === 'sending' || passwordMismatch}
+            >
+              {authStatus === 'sending' ? 'Working…' : mode === 'login' ? 'Log in' : 'Create account'}
+            </button>
+
+            {#if passwordMismatch}
+              <div class="fineprint error">Passwords do not match.</div>
+            {:else if authStatus === 'signup-success'}
+              <div class="fineprint success">
+                Account created. Check your email to confirm and then log in.
+              </div>
+            {:else if authError}
+              <div class="fineprint error">{authError}</div>
+            {:else}
+              <div class="fineprint">
+                Use an email and password to {mode === 'login' ? 'log in' : 'create an account'}.
+              </div>
+            {/if}
+          </div>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
 <style>
   .login {
@@ -144,6 +186,19 @@
     color: var(--accent);
   }
 
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 24px;
+    margin-top: 8px;
+  }
+
+  .hero-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
   h1 {
     margin: 0;
     font-family: var(--font-display);
@@ -166,19 +221,36 @@
     max-width: 52ch;
   }
 
-  .cta-row {
+  .hero-meta {
     display: flex;
-    gap: 10px;
-    align-items: center;
     flex-wrap: wrap;
+    gap: 8px;
   }
 
-  .input-wrap {
-    flex: 1;
-    min-width: 240px;
+  .meta-pill {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.08);
+    color: var(--text-dim);
+    background: rgba(13, 15, 20, 0.6);
+  }
+
+  .auth-card {
+    background: rgba(13, 15, 20, 0.75);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 20px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
+  }
+
+  .input-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
   }
 
   .email,
@@ -200,6 +272,11 @@
     box-shadow: 0 0 0 4px rgba(91,138,255,0.15);
   }
 
+  .btn-primary:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+
   .fineprint {
     margin-top: 14px;
     font-size: 12px;
@@ -209,11 +286,11 @@
   .fineprint.error { color: rgba(255,107,107,0.9); }
 
   .mode-toggle {
-    margin-top: 18px;
     display: inline-flex;
     border: 1px solid rgba(255,255,255,0.08);
     border-radius: 999px;
     overflow: hidden;
+    margin-bottom: 8px;
   }
 
   .mode-toggle button {
@@ -234,5 +311,11 @@
   @media (max-width: 520px) {
     h1 { font-size: 34px; }
     .hero-card { padding: 26px; }
+  }
+
+  @media (max-width: 900px) {
+    .hero-grid {
+      grid-template-columns: 1fr;
+    }
   }
 </style>
