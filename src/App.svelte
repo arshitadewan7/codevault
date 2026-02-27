@@ -22,9 +22,8 @@
     route = parseHash()
   }
 
-  syncRoute()
-
   if (typeof window !== 'undefined') {
+    syncRoute()
     window.addEventListener('hashchange', syncRoute)
   }
 

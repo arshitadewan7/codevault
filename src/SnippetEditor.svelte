@@ -1,7 +1,7 @@
 <script>
   import { store, LANGUAGES } from '$lib/store.js'
   import { encodeSharePayload, buildShareUrl } from '$lib/share.js'
-  import Prism from 'prismjs'
+  import * as PrismModule from 'prismjs'
 
   import 'prismjs/components/prism-clike'
   import 'prismjs/components/prism-javascript'
@@ -24,6 +24,8 @@
   import 'prismjs/components/prism-json'
   import 'prismjs/components/prism-yaml'
   import 'prismjs/components/prism-markdown'
+
+  const Prism = PrismModule.default ?? PrismModule
 
   export let snippet = null
   export let project = null

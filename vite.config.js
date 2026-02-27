@@ -4,6 +4,9 @@ import { resolve } from 'path'
 
 export default defineConfig({
   plugins: [svelte()],
+  optimizeDeps: {
+    exclude: ['prismjs'],
+  },
   resolve: {
     alias: {
       '$lib': resolve('./src/lib')
